@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin Undangan</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,Segoe UI,Arial,sans-serif;background:#f6f1ec;color:#2b1f22}
+#login{min-height:100vh;display:grid;place-items:center}.box{background:#fff;padding:28px;border-radius:16px;width:min(360px,92vw);box-shadow:0 10px 30px #4a0e2220}
+.err{color:#b3261e;min-height:1.2em;margin:8px 0 0}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid #cdb9bf;border-radius:8px;font:inherit;background:#fff}
+input[type=checkbox]{width:auto}input[type=color]{padding:2px;height:38px}
+label{display:block;margin:8px 0;font-size:.85rem;color:#5b4a4f}
+.b{background:#4a0e22;color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer;margin:3px 2px}
+.b.o{background:#fff;color:#4a0e22;border:1px solid #4a0e22}.b.s{padding:5px 10px;font-size:.85rem}.b.d{background:#b3261e}
+.b:disabled{opacity:.5}
+#app{display:flex;min-height:100vh}#nav{width:190px;background:#4a0e22;padding:14px 8px;flex:none}
+#nav button{display:block;width:100%;text-align:left;background:none;border:0;color:#f3ede4;padding:10px 12px;border-radius:8px;font:inherit;cursor:pointer}
+#nav button.on{background:#ffffff26}
+main{flex:1;min-width:0;padding:16px 20px 60px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+#st{font-size:.85rem;color:#7a6a6f}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}.bar select,.bar input{width:auto;min-width:130px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.cd{background:#fff;border-radius:12px;padding:14px;box-shadow:0 2px 8px #4a0e2214}.cd b{display:block;font-size:1.8rem;color:#4a0e22}
+details.sc2{background:#fff;border-radius:12px;padding:10px 14px;margin:8px 0;box-shadow:0 2px 8px #4a0e2214}details>summary{cursor:pointer;padding:4px 0}
+fieldset{border:1px solid #e3d3d8;border-radius:10px;margin:10px 0;padding:6px 12px 12px}legend{font-size:.85rem;color:#4a0e22;padding:0 6px}
+.it{border:1px dashed #d8c6cc;border-radius:8px;padding:6px 10px;margin:8px 0}.ib2{text-align:right}.ib2 button{border:1px solid #cdb9bf;background:#fff;border-radius:6px;cursor:pointer;margin-left:3px}
+.r{display:flex;gap:6px}.ck{display:flex;gap:6px;align-items:center}
+.tw{overflow-x:auto;background:#fff;border-radius:12px}table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:7px 9px;border-bottom:1px solid #eee3e6;text-align:left;vertical-align:top}th{background:#f3e9ec;white-space:nowrap}
+.bad{color:#b3261e}.ok{color:#1b7a3d}
+#md{position:fixed;inset:0;background:#0007;z-index:50;display:grid;place-items:center;padding:12px}
+.mb{background:#fff;border-radius:14px;padding:18px;width:min(720px,100%);max-height:92vh;overflow:auto}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#4a0e22;color:#fff;padding:10px 20px;border-radius:99px;opacity:0;transition:.3s;pointer-events:none;z-index:99}
+#toast.show{opacity:1}#toast.bad{background:#b3261e}
+@media(max-width:720px){#app{flex-direction:column}#nav{width:100%;display:flex;overflow-x:auto;padding:6px}#nav button{white-space:nowrap;width:auto}}
+</style>
+</head>
+<body>
+<div id="login"><div class="box">
+  <h2 style="margin-top:0">Admin Undangan</h2>
+  <label>Password<input id="pw" type="password" autocomplete="current-password"></label>
+  <button id="lg" class="b" style="width:100%">Masuk</button>
+  <p id="le" class="err"></p>
+</div></div>
+<div id="app" hidden>
+  <nav id="nav"></nav>
+  <main><header><b id="ttl"></b><span id="st"></span></header><div id="pg"></div></main>
+</div>
+<div id="toast"></div>
+<script src="config.js"></script>
+<script src="default.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
