@@ -14,5 +14,5 @@ window.CONFIG = {
 
   // Alamat publik undangan (tanpa garis miring di akhir). Dipakai untuk membuat link tamu.
   // Contoh GitHub Pages: "https://username.github.io/undangan"
-  BASE_URL: "https://musafircintapulai-cloud.github.io/undangan"
+  BASE_URL: "https://musafircintapulai-cloud.github.io/undangan/"
 };
