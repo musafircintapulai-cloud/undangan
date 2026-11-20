@@ -14,6 +14,7 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function
 function nl(s) { return esc(s).replace(/\n/g, '<br>'); }
 function url(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? esc(u) : '#'; }
 function cssu(u) { return /^https?:\/\//i.test(u || '') ? 'url(' + JSON.stringify(u) + ')' : ''; }
+function cssa(u) { return esc(cssu(u)); } // untuk dipakai di dalam atribut style="..."
 function col(c) { return /^#[0-9a-f]{3,8}$/i.test(c) ? c : '#cccccc'; }
 function $(s) { return document.querySelector(s); }
 function toast(m, bad) { var t = $('#toast'); t.textContent = m; t.className = 'show' + (bad ? ' bad' : ''); clearTimeout(toast.t); toast.t = setTimeout(function () { t.className = ''; }, 3200); }
@@ -29,17 +30,30 @@ function rpc(n, a) { return api('rpc/' + n, { method: 'POST', body: JSON.stringi
 function fl(n) { // bunga SVG placeholder
   return '<svg class="fw" width="' + n + '" height="' + n + '" viewBox="0 0 100 100"><g fill="#c98a9a" opacity=".9"><circle cx="50" cy="26" r="18"/><circle cx="74" cy="44" r="18"/><circle cx="65" cy="72" r="18"/><circle cx="35" cy="72" r="18"/><circle cx="26" cy="44" r="18"/></g><circle cx="50" cy="52" r="12" fill="#f3ede4"/></svg>';
 }
+function frame() { // bingkai oval timbul dengan ornamen bunga (SVG)
+  var pet = function (x, y, k) { return '<g transform="translate(' + x + ' ' + y + ') scale(' + k + ')"><g fill="#c98a9a"><circle cy="-13" r="9"/><circle cx="12" cy="-4" r="9"/><circle cx="8" cy="11" r="9"/><circle cx="-8" cy="11" r="9"/><circle cx="-12" cy="-4" r="9"/></g><circle r="6" fill="#f3ede4"/></g>'; };
+  var lf = function (x, y, r) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="15" ry="5" transform="rotate(' + r + ' ' + x + ' ' + y + ')" style="fill:var(--s)" opacity=".7"/>'; };
+  return '<svg class="fr" viewBox="0 0 400 520" aria-hidden="true"><defs><radialGradient id="ovg" cx="50%" cy="45%" r="65%"><stop offset="0" style="stop-color:#fff"/><stop offset="1" style="stop-color:var(--cd)"/></radialGradient></defs>' +
+    '<ellipse cx="200" cy="260" rx="192" ry="252" fill="url(#ovg)" style="stroke:var(--s)" stroke-width="1.6"/>' +
+    '<ellipse cx="198.5" cy="258.5" rx="178" ry="238" fill="none" stroke="#fff" stroke-width="2" opacity=".95"/>' +
+    '<ellipse cx="201.5" cy="261.5" rx="178" ry="238" fill="none" style="stroke:var(--p)" stroke-width="1.5" opacity=".16"/>' +
+    '<ellipse cx="200" cy="260" rx="178" ry="238" fill="none" style="stroke:var(--s)" stroke-width="1"/>' +
+    '<ellipse cx="200" cy="260" rx="167" ry="227" fill="none" style="stroke:var(--s)" stroke-width="2.4" stroke-dasharray="0.1 7" stroke-linecap="round"/>' +
+    lf(170, 16, -18) + lf(230, 16, 18) + lf(154, 26, -34) + lf(246, 26, 34) + pet(200, 8, 1.15) +
+    lf(170, 504, 18) + lf(230, 504, -18) + lf(154, 494, 34) + lf(246, 494, -34) + pet(200, 512, 1.15) +
+    pet(16, 260, .6) + pet(384, 260, .6) + pet(64, 82, .5) + pet(336, 82, .5) + pet(64, 438, .5) + pet(336, 438, .5) + '</svg>';
+}
 function names() { var c = sec('couple'); return c ? [c.data.groom || '', c.data.bride || ''] : ['', '']; }
 
 /* ---------- Render tiap jenis bagian ---------- */
 var R = {
   couple: function (d) {
-    var f = C.theme.assets.ovalFrame, st = f ? ' style="background-image:' + cssu(f) + '"' : '';
-    return '<div class="oval"' + st + '><p>' + esc(d.intro) + '</p><h1 class="sc">' + esc(d.groom) + '<br>&amp;<br>' + esc(d.bride) + '</h1><p><b>' + esc(d.date) + '</b><br>' + esc(d.place) + '</p></div>';
+    var f = C.theme.assets.ovalFrame, st = f ? ' style="background-image:' + cssa(f) + '"' : '';
+    return '<div class="oval' + (f ? ' img' : '') + '"' + st + '>' + (f ? '' : frame()) + '<div class="oc"><p class="ey">' + esc(d.intro) + '</p><h1 class="sc">' + esc(d.groom) + '<span>&amp;</span>' + esc(d.bride) + '</h1><i class="dv"></i><p><b>' + esc(d.date) + '</b></p><p>' + esc(d.place) + '</p></div></div>';
   },
   polaroid: function (d) {
     return (d.photos || []).slice(0, 2).map(function (p) {
-      var st = p.url ? ' style="background-image:' + cssu(p.url) + '"' : '';
+      var st = p.url ? ' style="background-image:' + cssa(p.url) + '"' : '';
       return '<div class="pol" data-lb><div class="im"' + st + '></div>' + esc(p.caption) + '</div>';
     }).join('') + '<h2 class="sc" style="margin-top:20px">Our Love Story</h2>' + (d.linkText ? '<button class="btn o" data-lb>' + esc(d.linkText) + '</button>' : '');
   },
@@ -166,38 +180,66 @@ function start(c) {
   if (cv) {
     var seal = as.waxSeal ? '<img src="' + url(as.waxSeal) + '" alt="">' : esc((n[0][0] || '') + (n[1][0] || ''));
     h += '<div id="cover"><div><p>Undangan Pernikahan</p><h1 class="sc">' + esc(n[0]) + ' &amp; ' + esc(n[1]) + '</h1><p>Kepada Yth.</p><h3>' + esc(G.name) + '</h3>' +
-      '<div class="env" id="env"' + (as.envelope ? ' style="background-image:' + cssu(as.envelope) + '"' : '') + '><div class="bd"></div><div class="fi">' + fl(70) + '</div><div class="flp"></div><div class="seal">' + seal + '</div></div>' +
+      '<div class="env" id="env"' + (as.envelope ? ' style="background-image:' + cssa(as.envelope) + '"' : '') + '><div class="bd"></div><div class="fi">' + fl(70) + '</div><div class="flp"></div><div class="seal">' + seal + '</div></div>' +
       '<button class="btn" id="open">Buka Undangan</button></div></div>';
+  }
+  var bg = C.background || D.background || {}, ov = parseFloat(bg.overlay); ov = isNaN(ov) ? .55 : Math.max(0, Math.min(1, ov));
+  if (bg.type === 'image' && /^https?:\/\//i.test(bg.imageUrl || '')) h += '<div id="bgl" style="background-image:' + cssa(bg.imageUrl) + '"><div class="bgo" style="opacity:' + ov + '"></div></div>';
+  else if (bg.type === 'video' && /^https?:\/\//i.test(bg.videoUrl || '')) h += '<div id="bgl"><video src="' + url(bg.videoUrl) + '" autoplay muted loop playsinline preload="auto"></video><div class="bgo" style="opacity:' + ov + '"></div></div>';
+  var it = C.intro || D.intro || {}, cp = sec('couple'), introOn = it.enabled === true;
+  if (introOn) {
+    h += '<div id="intro">' + (/^https?:\/\//i.test(it.videoUrl || '') ? '<video id="iv" src="' + url(it.videoUrl) + '" playsinline preload="auto"></video>' :
+      '<div class="ia"><small>Kami mengundang Anda</small><h1 class="sc">Save the Date</h1><i class="dv"></i><p>' + esc(cp ? cp.data.date : '') + '</p></div>') +
+      (it.showSkip !== false ? '<button id="skip" hidden>Lewati ›</button>' : '') + '</div>';
   }
   h += as.flowersTopLeft ? '<img class="dc tl" alt="" src="' + url(as.flowersTopLeft) + '">' : '<div class="dc tl">' + fl(150) + '</div>';
   h += as.flowersBottomRight ? '<img class="dc br" alt="" src="' + url(as.flowersBottomRight) + '">' : '<div class="dc br">' + fl(150) + '</div>';
   C.sections.forEach(function (s) {
     if (s.enabled === false || s.type === 'cover' || !R[s.type]) return;
-    h += '<section class="sec rv" id="' + esc(s.id) + '">' + R[s.type](s.data || {}) + '</section>';
+    h += '<section class="sec rv t-' + esc(s.type) + '" id="' + esc(s.id) + '">' + R[s.type](s.data || {}) + '</section>';
     if (s.type === 'couple') h += player();
   });
   var app = $('#app'); app.innerHTML = h;
   if (as.pageBackground) app.style.backgroundImage = cssu(as.pageBackground);
 
   if (tr().length) { aud = new Audio(); aud.preload = 'none'; aud.loop = tr().length === 1; aud.onended = function () { load(ti + 1); play(); }; load(0); $('#mus').hidden = false; }
-  var io = window.IntersectionObserver ? new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: .12 }) : null;
-  document.querySelectorAll('.rv').forEach(function (e) { io ? io.observe(e) : e.classList.add('in'); });
   tick(); setInterval(tick, 1000); wishes();
   try { if (localStorage.getItem('rsvp_' + (CODE || 'umum')) && $('#send')) { $('#send').disabled = true; $('#send').textContent = 'Sudah terkirim ✓'; } } catch (e) {}
 
-  var autoplay = (C.music || {}).autoplay !== false;
+  var autoplay = (C.music || {}).autoplay !== false, revealed = false;
+  function watch() { // animasi muncul saat di-scroll
+    var io = window.IntersectionObserver ? new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: .12 }) : null;
+    document.querySelectorAll('.rv').forEach(function (e) { io ? io.observe(e) : e.classList.add('in'); });
+  }
+  function reveal() { // tampilkan undangan (setelah intro selesai)
+    if (revealed) return; revealed = true;
+    var i = $('#intro'); if (i) { i.classList.add('gone'); var v = $('#iv'); if (v) v.pause(); setTimeout(function () { i.remove(); }, 1100); }
+    document.body.classList.remove('lk'); window.scrollTo(0, 0); setTimeout(watch, 150);
+    if (aud && autoplay) play();
+  }
+  function startIntro() { // putar video / animasi pembuka
+    var i = $('#intro'), v = $('#iv'), sk = $('#skip'); i.classList.add('go');
+    if (sk) { sk.onclick = reveal; setTimeout(function () { sk.hidden = false; }, 2500); }
+    if (v) {
+      v.onended = reveal; v.onerror = reveal;
+      v.play().catch(function () { v.muted = true; return v.play(); }).catch(reveal);
+      setTimeout(function () { if (!v.currentTime) reveal(); }, 10000); // video gagal mulai: jangan menahan tamu
+    } else setTimeout(reveal, 5600);
+  }
+  var bv = $('#bgl video'); if (bv) { bv.muted = true; bv.play().catch(function () {}); }
   if (cv) {
     $('#open').onclick = function () {
-      $('#env').classList.add('op');
+      this.disabled = true; $('#env').classList.add('op');
+      if (CODE && !PREV) rpc('mark_opened', { p_code: CODE }).catch(function () {});
+      if (introOn) startIntro(); // dimulai saat ketukan tamu agar video bersuara boleh diputar
       setTimeout(function () {
-        $('#cover').classList.add('gone'); document.body.classList.remove('lk');
-        if (aud && autoplay) play();
-        if (CODE && !PREV) rpc('mark_opened', { p_code: CODE }).catch(function () {});
+        $('#cover').classList.add('gone');
+        if (!introOn) reveal();
         setTimeout(function () { var c = $('#cover'); if (c) c.remove(); }, 1100);
       }, 900);
     };
   } else {
-    document.body.classList.remove('lk');
+    if (introOn) startIntro(); else reveal();
     if (CODE && !PREV) rpc('mark_opened', { p_code: CODE }).catch(function () {});
     document.addEventListener('click', function f() { if (aud && autoplay && !on) play(); document.removeEventListener('click', f); });
   }
@@ -228,6 +270,8 @@ var fresh = api('settings?id=eq.1&select=content').then(function (r) {
   try { localStorage.setItem('inv_c', JSON.stringify(c)); } catch (e) {}
   return c;
 }).catch(function () { return null; });
-(cached && cached.sections && !PREV ? Promise.resolve(cached) : fresh.then(function (c) { return c || D; }))
-  .then(function (c) { return gp.then(function () { start(c); }); });
+var first = cached && cached.sections && !PREV
+  ? Promise.race([fresh.then(function (c) { return c || cached; }), new Promise(function (r) { setTimeout(function () { r(cached); }, 1200); })])
+  : fresh.then(function (c) { return c || D; });
+first.then(function (c) { return gp.then(function () { start(c); }); });
 })();

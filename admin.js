@@ -3,7 +3,7 @@
 'use strict';
 var CF = window.CONFIG || {}, T = sessionStorage.getItem('adm_t') || '';
 var S = { c: null, g: [], r: [], tab: 'dash', sel: {}, op: {}, fg: { q: '', cat: '', st: '', sort: 'new' }, rf: '', dirty: false, imp: [] };
-var TABS = [['dash', 'Dashboard'], ['konten', 'Konten'], ['tema', 'Tema'], ['musik', 'Musik'], ['tamu', 'Tamu'], ['wa', 'Kirim WA'], ['rsvp', 'RSVP & Ucapan'], ['akun', 'Akun']];
+var TABS = [['dash', 'Dashboard'], ['konten', 'Konten'], ['tema', 'Tema'], ['musik', 'Musik'], ['latar', 'Intro & Latar'], ['tamu', 'Tamu'], ['wa', 'Kirim WA'], ['rsvp', 'RSVP & Ucapan'], ['akun', 'Akun']];
 var NEW = { text: { title: '', text: '' }, image: { url: '', caption: '' }, gallery: { images: [] }, video: { url: '' }, quote: { text: '', by: '' }, buttons: { buttons: [{ label: '', url: '' }] }, html: { text: '' } };
 var TPL = { photos: { url: '', caption: '' }, items: { title: '', venue: '', desc: '', time: '', mapUrl: '' }, buttons: { label: '', url: '' }, tracks: { title: '', url: '' }, questions: { key: '', label: '', type: 'text', required: false }, colors: '#cccccc', images: '', gallery: '' };
 var FONTS = ['Pinyon Script', 'Italianno', 'Great Vibes', 'Allura', 'Parisienne', 'Playfair Display', 'Cormorant Garamond', 'Lora', 'Libre Baskerville', 'Inter', 'Poppins', 'Montserrat', 'Nunito'];
@@ -50,6 +50,7 @@ function boot() {
   Promise.all([api('getContent'), api('listGuests')]).then(function (r) {
     var c = r[0] && r[0].content; S.c = c && c.sections && c.sections.length ? c : clone(window.DEFAULT_CONTENT);
     S.c.meta = S.c.meta || { title: '', description: '', baseUrl: '' }; S.c.wa = S.c.wa || clone(window.DEFAULT_CONTENT.wa); S.c.music = S.c.music || clone(window.DEFAULT_CONTENT.music);
+    S.c.intro = S.c.intro || clone(window.DEFAULT_CONTENT.intro); S.c.background = S.c.background || clone(window.DEFAULT_CONTENT.background);
     S.g = r[1] || []; st(''); render();
   }).catch(function (e) { toast(e.message, 1); });
 }
@@ -66,14 +67,15 @@ function lab(k) { return esc(String(k).replace(/([A-Z])/g, ' $1').replace(/^./, 
 function obj(o, p) { return Object.keys(o).map(function (k) { return fld(k, o[k], p + '.' + k); }).join(''); }
 function fld(k, v, p) {
   var P = esc(p), t = typeof v;
+  if (p === 'background.type') return '<label>Jenis latar<select data-p="background.type">' + [['none', 'Warna polos (tanpa foto/video)'], ['image', 'Foto'], ['video', 'Video']].map(function (o) { return '<option value="' + o[0] + '"' + (v === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>';
   if (Array.isArray(v)) return arr(k, v, p);
   if (v && t === 'object') return '<fieldset><legend>' + lab(k) + '</legend>' + obj(v, p) + '</fieldset>';
   if (t === 'boolean') return '<label class="ck"><input type="checkbox" data-p="' + P + '" data-t="b"' + (v ? ' checked' : '') + '> ' + lab(k) + '</label>';
-  if (t === 'number') return '<label>' + lab(k) + '<input type="number" data-p="' + P + '" data-t="n" value="' + esc(v) + '"></label>';
+  if (t === 'number') return '<label>' + lab(k) + '<input type="number" step="any" data-p="' + P + '" data-t="n" value="' + esc(v) + '"></label>';
   var s = String(v == null ? '' : v);
   if (/^theme\.colors/.test(p)) return '<label>' + lab(k) + '<input type="color" data-p="' + P + '" value="' + esc(s) + '"></label>';
   if (/^theme\.fonts/.test(p)) return '<label>' + lab(k) + '<input list="fonts" data-p="' + P + '" value="' + esc(s) + '"></label>';
-  var up = (k === 'url' || /^theme\.assets/.test(p)) ? '<button class="b s" data-act="up" data-p="' + P + '">Upload</button>' : '';
+  var up = (/^(url|videoUrl|imageUrl)$/.test(k) || /^theme\.assets/.test(p)) ? '<button class="b s" data-act="up" data-p="' + P + '">Upload</button>' : '';
   if (k === 'text' || k === 'desc' || k === 'template' || s.length > 80 || s.indexOf('\n') >= 0) return '<label>' + lab(k) + '<textarea rows="3" data-p="' + P + '">' + esc(s) + '</textarea></label>';
   return '<label>' + lab(k) + '<span class="r"><input data-p="' + P + '" value="' + esc(s) + '">' + up + '</span></label>';
 }
@@ -114,13 +116,14 @@ function shrink(f) {
 }
 function raw(f) { return new Promise(function (res) { var r = new FileReader(); r.onload = function () { res({ b64: r.result.split(',')[1], type: f.type }); }; r.readAsDataURL(f); }); }
 function upload(p) {
-  var i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*,audio/mpeg';
+  var i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*,audio/mpeg,video/mp4,video/webm';
   i.onchange = function () {
     var f = i.files[0]; if (!f) return;
-    var au = f.type === 'audio/mpeg'; if (au && f.size > 8 * 1024 * 1024) return toast('MP3 maksimal 8MB', 1);
+    var au = f.type === 'audio/mpeg', vd = /^video\/(mp4|webm)$/.test(f.type); if (au && f.size > 8 * 1024 * 1024) return toast('MP3 maksimal 8MB', 1);
+    if (vd && f.size > 15 * 1024 * 1024) return toast('Video maksimal 15MB. Kompres dulu, atau upload lewat Supabase Storage lalu tempel URL-nya.', 1);
     st('Mengunggah…');
-    (au ? raw(f) : shrink(f)).then(function (r) {
-      return api('uploadFile', { base64: r.b64, contentType: r.type, folder: au ? 'music' : /^theme\.assets/.test(p) ? 'assets' : 'images', name: f.name });
+    (au || vd ? raw(f) : shrink(f)).then(function (r) {
+      return api('uploadFile', { base64: r.b64, contentType: r.type, folder: au ? 'music' : vd ? 'video' : /^theme\.assets/.test(p) ? 'assets' : 'images', name: f.name });
     }).then(function (d) {
       setv(p, d.url); var el = document.querySelector('[data-p="' + p + '"]:not(button)'); if (el) el.value = d.url; dirty(); toast('Terunggah. Klik Simpan.');
     }).catch(function (e) { st(''); toast(e.message, 1); });
@@ -132,7 +135,7 @@ function upload(p) {
 function render() {
   $('#nav').innerHTML = TABS.map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('');
   $('#ttl').textContent = TABS.filter(function (t) { return t[0] === S.tab; })[0][1];
-  var f = { dash: pgDash, konten: pgKonten, tema: pgTema, musik: pgMusik, tamu: pgTamu, wa: pgWa, rsvp: pgRsvp, akun: pgAkun }[S.tab]; f();
+  var f = { dash: pgDash, konten: pgKonten, tema: pgTema, musik: pgMusik, latar: pgLatar, tamu: pgTamu, wa: pgWa, rsvp: pgRsvp, akun: pgAkun }[S.tab]; f();
 }
 function rerender() { var y = window.scrollY; render(); window.scrollTo(0, y); }
 function pg(h) { $('#pg').innerHTML = h; }
@@ -158,6 +161,10 @@ function pgKonten() {
   pg(h);
 }
 function pgTema() { pg(saveBar() + '<datalist id="fonts">' + FONTS.map(function (f) { return '<option value="' + f + '">'; }).join('') + '</datalist>' + obj(S.c.theme, 'theme') + '<p><small>Aset dekoratif kosong = memakai gambar SVG bawaan.</small></p>'); }
+function pgLatar() {
+  pg(saveBar() + '<h3>Intro (video / animasi pembuka)</h3><p><small>Diputar setelah tamu membuka amplop. Bagian "The Wedding Of" muncul setelah intro selesai. Kosongkan Video Url untuk memakai animasi bawaan. Video: MP4 pendek (5–15 detik), maks 15MB; biarkan 1–2 detik pertama berupa fade-in karena tertutup amplop yang sedang membuka.</small></p>' + obj(S.c.intro, 'intro') +
+    '<h3>Latar halaman</h3><p><small>Foto atau video di belakang seluruh isi undangan. "Overlay" 0–1 = seberapa pekat warna latar menutupi foto/video agar teks tetap terbaca (0 = foto penuh). Video latar sebaiknya di bawah 5MB agar ringan di HP.</small></p>' + obj(S.c.background, 'background'));
+}
 function pgMusik() { pg(saveBar() + obj(S.c.music, 'music') + '<p><small>Upload MP3 (maks 8MB) atau tempel URL langsung.</small></p>'); }
 
 /* ----- Tamu ----- */

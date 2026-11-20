@@ -32,7 +32,6 @@ p{margin:8px 0}small{opacity:.7}
 .seal img{width:100%;height:100%;border-radius:50%;object-fit:cover}
 .env.op .seal{opacity:0}
 /* kartu oval */
-.oval{aspect-ratio:4/5;border-radius:50%;padding:12% 10%;display:flex;flex-direction:column;justify-content:center;background:var(--cd) center/100% 100%;box-shadow:inset 0 0 0 10px var(--cd),inset 0 0 0 12px #9c5b7077,inset 6px 6px 16px #fffb,inset -6px -6px 16px #4a0e2218,0 14px 34px #4a0e2230}
 /* pemutar musik */
 .mp{display:flex;gap:16px;align-items:center;text-align:left}
 .vin{flex:none;width:84px;height:84px;border-radius:50%;background:radial-gradient(circle,var(--a) 0 11%,#1b1b1b 12% 100%);box-shadow:0 4px 12px #0005,inset 0 0 0 6px #ffffff12}
@@ -41,7 +40,7 @@ p{margin:8px 0}small{opacity:.7}
 /* polaroid */
 .pol{display:inline-block;width:44%;margin:8px 2%;padding:7px 7px 26px;background:#fff;box-shadow:0 6px 16px #0003;transform:rotate(-5deg);cursor:pointer;font-size:.8rem}
 .pol+.pol{transform:rotate(4deg)}
-.pol .im{aspect-ratio:1;background:linear-gradient(135deg,#c98a9a,#6b1030) center/cover}
+.pol .im{aspect-ratio:4/5;background:linear-gradient(135deg,#c98a9a,#6b1030) center/cover}
 /* acara */
 .ev{padding:10px 0 18px}.ev+.ev{border-top:1px solid #9c5b7044;padding-top:20px}
 .tm{color:var(--s);font-size:1.15rem}
@@ -68,3 +67,30 @@ p{margin:8px 0}small{opacity:.7}
 #toast.show{opacity:1;transform:translate(-50%,0)}#toast.bad{background:#b3261e}
 #skel i{display:block;height:120px;margin:24px 20px;border-radius:24px;background:linear-gradient(90deg,#f3ede4,#fff,#f3ede4) 0 0/200% 100%;animation:sh 1.4s infinite}@keyframes sh{to{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+
+/* bingkai oval ornamen */
+.oval{position:relative;aspect-ratio:400/520;max-width:380px;margin:0 auto;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 16px 26px #4a0e2230)}
+.oval .fr{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.oval.img{background:center/100% 100% no-repeat}
+.oc{position:relative;width:100%;padding:0 12%}
+.oc .ey{font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--s)}
+.oc h1.sc{font-size:clamp(2rem,10vw,2.8rem);margin:10px 0 2px}
+.oc h1 span{display:block;font-size:.55em;color:var(--s)}
+.dv{display:block;width:96px;height:1px;margin:12px auto;background:linear-gradient(90deg,transparent,var(--s),transparent);position:relative}
+.dv::after{content:"";position:absolute;left:50%;top:-3px;width:6px;height:6px;margin-left:-3px;background:var(--s);transform:rotate(45deg)}
+.t-couple{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center}
+.t-couple.rv{transition-duration:1.6s}.t-couple .oval{transform:scale(.92);transition:transform 1.8s ease}.t-couple.in .oval{transform:none}
+/* intro (video / animasi) */
+#intro{position:fixed;inset:0;z-index:49;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;color:var(--cd);background:radial-gradient(circle at 50% 45%,#6b1030,#2e0716);transition:opacity 1s}
+#intro.gone{opacity:0;pointer-events:none}
+#intro video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#intro::before{content:"";position:absolute;width:60vmin;height:60vmin;border-radius:50%;border:1px solid #c98a9a77;animation:rg 5s ease-out infinite;animation-play-state:paused}
+#intro.go::before{animation-play-state:running}
+.ia{position:relative;padding:0 24px}.ia *{opacity:0;animation:fi 1.5s both;animation-play-state:paused}
+#intro.go .ia *{animation-play-state:running}
+.ia small{letter-spacing:.3em;text-transform:uppercase;animation-delay:.3s}.ia h1{color:var(--cd);font-size:3.2rem;animation-delay:1.3s}.ia .dv{animation-delay:2.2s}.ia p{font-size:1.2rem;animation-delay:2.6s}
+@keyframes fi{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}@keyframes rg{from{transform:scale(.3);opacity:1}to{transform:scale(2.4);opacity:0}}
+#skip{position:absolute;right:16px;bottom:22px;z-index:2;background:#0005;color:#fff;border:1px solid #fff7;border-radius:99px;padding:8px 18px;font:inherit;cursor:pointer}
+/* latar foto / video */
+#bgl{position:fixed;top:0;bottom:0;left:50%;width:min(100vw,480px);transform:translateX(-50%);z-index:0;overflow:hidden;pointer-events:none;background:center/cover}
+#bgl video{width:100%;height:100%;object-fit:cover}.bgo{position:absolute;inset:0;background:var(--bg)}

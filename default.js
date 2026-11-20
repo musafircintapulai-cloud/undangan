@@ -5,6 +5,8 @@ window.DEFAULT_CONTENT = {
     fonts: { script: 'Pinyon Script', heading: 'Cormorant Garamond', body: 'Inter' }, assets: {} },
   music: { enabled: false, autoplay: true, tracks: [] },
   wa: { template: "Halo {nama},\n\nKami mengundang Anda ke pernikahan kami. Buka undangan digital di sini:\n{link}\n\nTerima kasih 🙏" },
+  intro: { enabled: true, videoUrl: '', showSkip: true },
+  background: { type: 'none', imageUrl: '', videoUrl: '', overlay: 0.55 },
   sections: [
     { id: 'cover', type: 'cover', enabled: true, data: {} },
     { id: 'couple', type: 'couple', enabled: true, data: { intro: 'Bergabunglah bersama kami dalam pernikahan', groom: 'Alexander', bride: 'Isabella', date: 'Sabtu, 12 Juni 2027', place: 'Jakarta, Indonesia' } },
