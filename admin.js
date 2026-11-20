@@ -50,6 +50,7 @@ function boot() {
   Promise.all([api('getContent'), api('listGuests')]).then(function (r) {
     var c = r[0] && r[0].content; S.c = c && c.sections && c.sections.length ? c : clone(window.DEFAULT_CONTENT);
     S.c.meta = S.c.meta || { title: '', description: '', baseUrl: '' }; S.c.wa = S.c.wa || clone(window.DEFAULT_CONTENT.wa); S.c.music = S.c.music || clone(window.DEFAULT_CONTENT.music);
+    S.c.sections.forEach(function (x) { if (x.type === 'couple') { var d = x.data = x.data || {}, o = S.c.theme && S.c.theme.assets && S.c.theme.assets.ovalFrame, df = { frameMode: o ? 'bingkai' : 'bawaan', frameUrl: o || '', maxWidth: 380, textInset: 14, textOffsetY: 0, textScale: 1 }; for (var k in df) if (d[k] === undefined) d[k] = df[k]; } });
     S.c.intro = S.c.intro || clone(window.DEFAULT_CONTENT.intro); S.c.background = S.c.background || clone(window.DEFAULT_CONTENT.background);
     S.g = r[1] || []; st(''); render();
   }).catch(function (e) { toast(e.message, 1); });
@@ -67,6 +68,7 @@ function lab(k) { return esc(String(k).replace(/([A-Z])/g, ' $1').replace(/^./, 
 function obj(o, p) { return Object.keys(o).map(function (k) { return fld(k, o[k], p + '.' + k); }).join(''); }
 function fld(k, v, p) {
   var P = esc(p), t = typeof v;
+  if (/\.frameMode$/.test(p)) return '<label>Mode bingkai<select data-p="' + P + '">' + [['bawaan', 'Bingkai bawaan + tulisan undangan'], ['bingkai', 'Gambar bingkai saya + tulisan undangan'], ['penuh', 'Gambar penuh saya (bingkai & tulisan sudah di gambar)']].map(function (o) { return '<option value="' + o[0] + '"' + (v === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>';
   if (p === 'background.type') return '<label>Jenis latar<select data-p="background.type">' + [['none', 'Warna polos (tanpa foto/video)'], ['image', 'Foto'], ['video', 'Video']].map(function (o) { return '<option value="' + o[0] + '"' + (v === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>';
   if (Array.isArray(v)) return arr(k, v, p);
   if (v && t === 'object') return '<fieldset><legend>' + lab(k) + '</legend>' + obj(v, p) + '</fieldset>';
@@ -75,7 +77,7 @@ function fld(k, v, p) {
   var s = String(v == null ? '' : v);
   if (/^theme\.colors/.test(p)) return '<label>' + lab(k) + '<input type="color" data-p="' + P + '" value="' + esc(s) + '"></label>';
   if (/^theme\.fonts/.test(p)) return '<label>' + lab(k) + '<input list="fonts" data-p="' + P + '" value="' + esc(s) + '"></label>';
-  var up = (/^(url|videoUrl|imageUrl)$/.test(k) || /^theme\.assets/.test(p)) ? '<button class="b s" data-act="up" data-p="' + P + '">Upload</button>' : '';
+  var up = (/^(url|videoUrl|imageUrl|frameUrl)$/.test(k) || /^theme\.assets/.test(p)) ? '<button class="b s" data-act="up" data-p="' + P + '">Upload</button>' : '';
   if (k === 'text' || k === 'desc' || k === 'template' || s.length > 80 || s.indexOf('\n') >= 0) return '<label>' + lab(k) + '<textarea rows="3" data-p="' + P + '">' + esc(s) + '</textarea></label>';
   return '<label>' + lab(k) + '<span class="r"><input data-p="' + P + '" value="' + esc(s) + '">' + up + '</span></label>';
 }
@@ -97,16 +99,16 @@ function blank(x) { if (Array.isArray(x)) return []; if (x && typeof x === 'obje
 function saveBar() { return '<div class="bar"><button class="b" data-act="save">Simpan</button><button class="b o" data-act="prev">Pratinjau undangan</button></div>'; }
 
 /* ---------- Upload (kompres gambar di browser) ---------- */
-function shrink(f) {
+function shrink(f, lim, mx) {
   return new Promise(function (res, rej) {
     var im = new Image(), u = URL.createObjectURL(f);
     im.onerror = function () { rej(new Error('Gambar tidak terbaca')); };
     im.onload = function () {
-      var k = Math.min(1, 1600 / Math.max(im.width, im.height)), w = Math.round(im.width * k), h = Math.round(im.height * k), q = .85, c = document.createElement('canvas');
+      var k = Math.min(1, (mx || 1600) / Math.max(im.width, im.height)), w = Math.round(im.width * k), h = Math.round(im.height * k), q = .85, c = document.createElement('canvas');
       (function go() {
         c.width = w; c.height = h; c.getContext('2d').drawImage(im, 0, 0, w, h);
         c.toBlob(function (b) {
-          if (b.size > 400 * 1024 && (q > .45 || w > 600)) { if (q > .45) q -= .15; else { w = Math.round(w * .8); h = Math.round(h * .8); } return go(); }
+          if (b.size > (lim || 400 * 1024) && (q > .45 || w > 600)) { if (q > .45) q -= .15; else { w = Math.round(w * .8); h = Math.round(h * .8); } return go(); }
           var r = new FileReader(); r.onload = function () { res({ b64: r.result.split(',')[1], type: b.type }); }; r.readAsDataURL(b);
         }, 'image/webp', q);
       })();
@@ -122,7 +124,7 @@ function upload(p) {
     var au = f.type === 'audio/mpeg', vd = /^video\/(mp4|webm)$/.test(f.type); if (au && f.size > 8 * 1024 * 1024) return toast('MP3 maksimal 8MB', 1);
     if (vd && f.size > 15 * 1024 * 1024) return toast('Video maksimal 15MB. Kompres dulu, atau upload lewat Supabase Storage lalu tempel URL-nya.', 1);
     st('Mengunggah…');
-    (au || vd ? raw(f) : shrink(f)).then(function (r) {
+    (au || vd ? raw(f) : shrink(f, /frameUrl$/.test(p) ? 900 * 1024 : 0, /frameUrl$/.test(p) ? 2000 : 0)).then(function (r) {
       return api('uploadFile', { base64: r.b64, contentType: r.type, folder: au ? 'music' : vd ? 'video' : /^theme\.assets/.test(p) ? 'assets' : 'images', name: f.name });
     }).then(function (d) {
       setv(p, d.url); var el = document.querySelector('[data-p="' + p + '"]:not(button)'); if (el) el.value = d.url; dirty(); toast('Terunggah. Klik Simpan.');
@@ -149,6 +151,7 @@ function pgDash() {
 }
 
 function pgKonten() {
+  var HINT = { couple: '<p><small><b>Bingkai sendiri:</b> pilih <i>Frame Mode</i>. Mode 2: upload PNG/WebP transparan di <i>Frame Url</i> (disarankan 1200×1560 px), tulisan undangan otomatis dipas di tengahnya. Mode 3: upload gambar utuh yang sudah berisi tulisan. Penyesuaian mode 2: <i>Max Width</i> = lebar bingkai (px), <i>Text Inset</i> = jarak tulisan dari kiri-kanan (%), <i>Text Offset Y</i> = geser tulisan naik(−)/turun(+) (%), <i>Text Scale</i> = besar tulisan (1 = normal). Klik Simpan lalu Pratinjau.</small></p>' };
   var h = saveBar() + '<div class="bar"><select id="nt">' + Object.keys(NEW).map(function (k) { return '<option>' + k + '</option>'; }).join('') + '</select><button class="b o" data-act="addsec">+ Tambah bagian</button></div>';
   h += '<details class="sc2"><summary><b>Info halaman</b> <small>(judul, deskripsi, alamat situs)</small></summary>' + obj(S.c.meta, 'meta') + '</details>';
   S.c.sections.forEach(function (s, i) {
@@ -156,7 +159,7 @@ function pgKonten() {
       '<div class="bar"><label class="ck"><input type="checkbox" data-p="sections.' + i + '.enabled" data-t="b"' + (s.enabled !== false ? ' checked' : '') + '> Aktif</label>' +
       '<button class="b s o" data-act="mvs" data-i="' + i + '" data-d="-1">↑ Naik</button><button class="b s o" data-act="mvs" data-i="' + i + '" data-d="1">↓ Turun</button>' +
       '<button class="b s o" data-act="dup" data-i="' + i + '">Duplikat</button><button class="b s d" data-act="del" data-i="' + i + '">Hapus</button></div>' +
-      obj(s.data || {}, 'sections.' + i + '.data') + '</details>';
+      (HINT[s.type] || '') + obj(s.data || {}, 'sections.' + i + '.data') + '</details>';
   });
   pg(h);
 }

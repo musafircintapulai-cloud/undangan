@@ -48,8 +48,15 @@ function names() { var c = sec('couple'); return c ? [c.data.groom || '', c.data
 /* ---------- Render tiap jenis bagian ---------- */
 var R = {
   couple: function (d) {
-    var f = C.theme.assets.ovalFrame, st = f ? ' style="background-image:' + cssa(f) + '"' : '';
-    return '<div class="oval' + (f ? ' img' : '') + '"' + st + '>' + (f ? '' : frame()) + '<div class="oc"><p class="ey">' + esc(d.intro) + '</p><h1 class="sc">' + esc(d.groom) + '<span>&amp;</span>' + esc(d.bride) + '</h1><i class="dv"></i><p><b>' + esc(d.date) + '</b></p><p>' + esc(d.place) + '</p></div></div>';
+    // mode: bawaan = bingkai SVG + tulisan | bingkai = gambar bingkai sendiri + tulisan | penuh = gambar penuh (tulisan ada di gambar)
+    var mode = d.frameMode || 'bawaan', fu = d.frameUrl || '', lg = C.theme.assets.ovalFrame;
+    if (!d.frameMode && lg) { mode = 'bingkai'; fu = lg; } // kompatibel dengan versi lama
+    var ok = /^https?:\/\//i.test(fu), nm = function (v, lo, hi, z) { v = parseFloat(v); return isNaN(v) ? z : Math.max(lo, Math.min(hi, v)); };
+    var st = ' style="--mw:' + nm(d.maxWidth, 200, 480, 380) + 'px;--px:' + nm(d.textInset, 0, 40, 14) + '%;--oy:' + nm(d.textOffsetY, -30, 30, 0) + '%;--ts:' + nm(d.textScale, .5, 1.6, 1) + '"';
+    if (mode === 'penuh' && ok) return '<div class="oval cu"' + st + '><img class="bf" src="' + url(fu) + '" alt="' + esc([d.intro, d.groom + ' & ' + d.bride, d.date, d.place].join(', ')) + '"></div>';
+    var txt = '<div class="oc"><p class="ey">' + esc(d.intro) + '</p><h1 class="sc">' + esc(d.groom) + '<span>&amp;</span>' + esc(d.bride) + '</h1><i class="dv"></i><p><b>' + esc(d.date) + '</b></p><p>' + esc(d.place) + '</p></div>';
+    if (mode === 'bingkai' && ok) return '<div class="oval cu"' + st + '><img class="bf" src="' + url(fu) + '" alt="">' + txt + '</div>';
+    return '<div class="oval"' + st + '>' + frame() + txt + '</div>';
   },
   polaroid: function (d) {
     return (d.photos || []).slice(0, 2).map(function (p) {

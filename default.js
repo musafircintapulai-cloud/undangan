@@ -9,7 +9,7 @@ window.DEFAULT_CONTENT = {
   background: { type: 'none', imageUrl: '', videoUrl: '', overlay: 0.55 },
   sections: [
     { id: 'cover', type: 'cover', enabled: true, data: {} },
-    { id: 'couple', type: 'couple', enabled: true, data: { intro: 'Bergabunglah bersama kami dalam pernikahan', groom: 'Alexander', bride: 'Isabella', date: 'Sabtu, 12 Juni 2027', place: 'Jakarta, Indonesia' } },
+    { id: 'couple', type: 'couple', enabled: true, data: { intro: 'Bergabunglah bersama kami dalam pernikahan', groom: 'Alexander', bride: 'Isabella', date: 'Sabtu, 12 Juni 2027', place: 'Jakarta, Indonesia', frameMode: 'bawaan', frameUrl: '', maxWidth: 380, textInset: 14, textOffsetY: 0, textScale: 1 } },
     { id: 'story', type: 'polaroid', enabled: true, data: { photos: [{ url: '', caption: 'Pertemuan pertama' }, { url: '', caption: 'Hari lamaran' }], linkText: 'Baca kisah cinta kami', gallery: [] } },
     { id: 'events', type: 'events', enabled: true, data: { items: [
       { title: 'Welcome Aperitivo', venue: 'Taman Belakang Hotel Aurora', desc: 'Sambutan hangat dengan hidangan ringan dan musik akustik.', time: 'Jumat, 11 Juni 2027 • 18.00 WIB', mapUrl: 'https://maps.google.com' },
